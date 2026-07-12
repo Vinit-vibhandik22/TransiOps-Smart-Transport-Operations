@@ -482,7 +482,8 @@ app.put('/api/trips/:id/complete', authorize(['fleet_manager', 'driver', 'dispat
       trip_id: trip.id,
       liters: fuelVal,
       cost: fuelCostVal,
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      logged_by: req.headers['x-user-email']
     });
 
     res.json({ message: 'Trip completed, vehicle and driver statuses restored. Fuel log generated.', trip_id: id });
@@ -618,7 +619,8 @@ app.post('/api/fuel', authorize(['fleet_manager', 'driver']), async (req, res) =
       trip_id: trip_id ? parseInt(trip_id) : null,
       liters: parseFloat(liters),
       cost: parseFloat(cost),
-      date
+      date,
+      logged_by: req.headers['x-user-email']
     });
     res.status(201).json(log);
   } catch (err) {
@@ -649,7 +651,8 @@ app.post('/api/expenses', authorize(['fleet_manager', 'financial_analyst', 'driv
       type,
       cost: parseFloat(cost),
       date,
-      description
+      description,
+      logged_by: req.headers['x-user-email']
     });
     res.status(201).json(expense);
   } catch (err) {

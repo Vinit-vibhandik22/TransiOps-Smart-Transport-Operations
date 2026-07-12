@@ -1208,6 +1208,72 @@
                 </table>
               </div>
             </div>
+
+            <!-- Driver Logged Costs -->
+            <div class="card" style="padding: 20px;">
+              <h3 style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="wallet" style="color: var(--color-available);"></i>
+                  My Logged Costs
+                </span>
+                <span style="font-size: 13px; font-weight: normal; color: var(--text-muted);" id="driver-logged-costs-summary">Total: ₹0</span>
+              </h3>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: -10px; margin-bottom: 15px;" id="driver-logged-costs-trip-scope">
+                Showing costs for: None
+              </div>
+              
+              <!-- Tab Navigation -->
+              <div class="driver-cost-tabs" style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; gap: 15px;">
+                <button class="driver-cost-tab-btn active" onclick="switchDriverCostTab('fuel')" id="btn-driver-cost-tab-fuel" style="background: none; border: none; color: var(--text-muted); padding: 8px 12px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;">
+                  <i data-lucide="droplet" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Fuel Logs
+                </button>
+                <button class="driver-cost-tab-btn" onclick="switchDriverCostTab('expenses')" id="btn-driver-cost-tab-expenses" style="background: none; border: none; color: var(--text-muted); padding: 8px 12px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;">
+                  <i data-lucide="receipt" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Other Expenses
+                </button>
+              </div>
+
+              <!-- Tab Content: Fuel Logs -->
+              <div id="driver-cost-content-fuel" class="driver-cost-tab-content">
+                <div class="table-container">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Vehicle</th>
+                        <th>Liters</th>
+                        <th>Cost (₹)</th>
+                        <th>Trip ID</th>
+                      </tr>
+                    </thead>
+                    <tbody id="driver-portal-fuel-logs">
+                      <tr><td colspan="5" style="text-align:center; color: var(--text-muted);">No fuel logs recorded.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Tab Content: Expenses -->
+              <div id="driver-cost-content-expenses" class="driver-cost-tab-content" style="display: none;">
+                <div class="table-container">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Vehicle</th>
+                        <th>Type</th>
+                        <th>Cost (₹)</th>
+                        <th>Description</th>
+                        <th>Trip ID</th>
+                      </tr>
+                    </thead>
+                    <tbody id="driver-portal-expenses">
+                      <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">No other expenses recorded.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

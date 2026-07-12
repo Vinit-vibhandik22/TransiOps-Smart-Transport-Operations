@@ -394,12 +394,16 @@ function setupEventListeners() {
 
   document.getElementById('btn-log-fuel').addEventListener('click', () => {
     setupExpenseFormDropdowns('fuel-vehicle');
+    document.getElementById('fuel-vehicle').disabled = false;
+    document.getElementById('fuel-trip-id').value = '';
     document.getElementById('fuel-date').value = new Date().toISOString().split('T')[0];
     openModal('modal-fuel');
   });
 
   document.getElementById('btn-log-expense').addEventListener('click', () => {
     setupExpenseFormDropdowns('expense-vehicle');
+    document.getElementById('expense-vehicle').disabled = false;
+    document.getElementById('expense-trip-id').value = '';
     document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
     openModal('modal-expense');
   });
@@ -1730,7 +1734,11 @@ async function handleLogExpense(e) {
     showToast(`Operational expense details saved.`, 'success');
     closeAllModals();
     document.getElementById('form-expense').reset();
-    await navigateTo('expenses');
+    if (state.currentUser && state.currentUser.role === 'driver') {
+      await navigateTo('driver_portal');
+    } else {
+      await navigateTo('expenses');
+    }
   } catch (err) {
     showToast(`Failed to log expense: ${err.message}`, 'error');
   }
@@ -2121,6 +2129,78 @@ async function loadDriverPortalData() {
       pastTripsBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">No past trips recorded.</td></tr>`;
     }
 
+    // Load Fuel logs and Expenses for the logged in driver
+    state.fuelLogs = await apiJSONCall('/fuel');
+    state.expenses = await apiJSONCall('/expenses');
+
+    // Scoping check: Current active trip if any, else previous trip
+    let targetTripId = null;
+    let targetTripScopeLabel = 'No active or past trips found';
+
+    if (activeTrip) {
+      targetTripId = activeTrip.id;
+      targetTripScopeLabel = `Active Trip #${activeTrip.id} (${activeTrip.source} &rarr; ${activeTrip.destination})`;
+    } else if (pastTrips.length > 0) {
+      const previousTrip = pastTrips[0]; // pastTrips is reversed (newest first)
+      targetTripId = previousTrip.id;
+      targetTripScopeLabel = `Previous Trip #${previousTrip.id} (${previousTrip.source} &rarr; ${previousTrip.destination})`;
+    }
+
+    const scopeEl = document.getElementById('driver-logged-costs-trip-scope');
+    if (scopeEl) {
+      scopeEl.innerHTML = `Showing costs for: <strong>${targetTripScopeLabel}</strong>`;
+    }
+
+    const myFuelLogs = state.fuelLogs.filter(f => f.logged_by === state.currentUser.email && f.trip_id === targetTripId);
+    const myExpenses = state.expenses.filter(e => e.logged_by === state.currentUser.email && e.trip_id === targetTripId);
+
+    // Calculate total cost logged by this driver
+    const totalFuelCost = myFuelLogs.reduce((sum, f) => sum + f.cost, 0);
+    const totalExpenseCost = myExpenses.reduce((sum, e) => sum + e.cost, 0);
+    const totalDriverCost = totalFuelCost + totalExpenseCost;
+
+    const loggedSummaryEl = document.getElementById('driver-logged-costs-summary');
+    if (loggedSummaryEl) {
+      loggedSummaryEl.textContent = `Total: ₹${totalDriverCost.toLocaleString()}`;
+    }
+
+    // Render Fuel Logs Table
+    const fuelBody = document.getElementById('driver-portal-fuel-logs');
+    if (fuelBody) {
+      if (myFuelLogs.length > 0) {
+        fuelBody.innerHTML = myFuelLogs.map(f => `
+          <tr>
+            <td>${f.date}</td>
+            <td><strong>${f.vehicle_id}</strong></td>
+            <td>${f.liters} L</td>
+            <td>₹${f.cost.toLocaleString()}</td>
+            <td>${f.trip_id ? `#${f.trip_id}` : '-'}</td>
+          </tr>
+        `).join('');
+      } else {
+        fuelBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">No fuel logs recorded.</td></tr>`;
+      }
+    }
+
+    // Render Expenses Table
+    const expensesBody = document.getElementById('driver-portal-expenses');
+    if (expensesBody) {
+      if (myExpenses.length > 0) {
+        expensesBody.innerHTML = myExpenses.map(e => `
+          <tr>
+            <td>${e.date}</td>
+            <td><strong>${e.vehicle_id}</strong></td>
+            <td><span class="badge ${e.type.toLowerCase().replace(/\s+/g, '')}">${e.type}</span></td>
+            <td>₹${e.cost.toLocaleString()}</td>
+            <td>${e.description}</td>
+            <td>${e.trip_id ? `#${e.trip_id}` : '-'}</td>
+          </tr>
+        `).join('');
+      } else {
+        expensesBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-muted);">No other expenses recorded.</td></tr>`;
+      }
+    }
+
     lucide.createIcons();
   } catch (err) {
     showToast(`Error loading driver portal: ${err.message}`, 'error');
@@ -2137,7 +2217,9 @@ function getActiveTripForCurrentDriver() {
 
 function openDriverLogFuel(vehicleId, tripId) {
   setupExpenseFormDropdowns('fuel-vehicle');
-  document.getElementById('fuel-vehicle').value = vehicleId;
+  const select = document.getElementById('fuel-vehicle');
+  select.value = vehicleId;
+  select.disabled = !!vehicleId;
   document.getElementById('fuel-trip-id').value = tripId || '';
   document.getElementById('fuel-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('fuel-liters').value = '';
@@ -2147,7 +2229,9 @@ function openDriverLogFuel(vehicleId, tripId) {
 
 function openDriverLogExpense(vehicleId, tripId) {
   setupExpenseFormDropdowns('expense-vehicle');
-  document.getElementById('expense-vehicle').value = vehicleId;
+  const select = document.getElementById('expense-vehicle');
+  select.value = vehicleId;
+  select.disabled = !!vehicleId;
   document.getElementById('expense-trip-id').value = tripId || '';
   document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('expense-cost').value = '';
@@ -2163,3 +2247,25 @@ async function driverPortalDispatch(id) {
 async function driverPortalComplete(id, odometerStart) {
   openCompleteTripModal(id, odometerStart);
 }
+
+// Driver logged costs tab switcher
+window.switchDriverCostTab = function(tabName) {
+  const tabs = document.querySelectorAll('.driver-cost-tab-btn');
+  const contents = document.querySelectorAll('.driver-cost-tab-content');
+  
+  tabs.forEach(btn => {
+    if (btn.id === `btn-driver-cost-tab-${tabName}`) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  
+  contents.forEach(content => {
+    if (content.id === `driver-cost-content-${tabName}`) {
+      content.style.display = 'block';
+    } else {
+      content.style.display = 'none';
+    }
+  });
+};

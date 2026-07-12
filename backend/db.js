@@ -108,7 +108,7 @@ if (isSQLite && sqliteDb) {
       FOREIGN KEY (vehicle_id) REFERENCES vehicles(registration_number)
     )`);
 
-    // Fuel Logs (Added trip_id)
+    // Fuel Logs (Added trip_id, logged_by)
     sqliteDb.run(`CREATE TABLE IF NOT EXISTS fuel_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       vehicle_id TEXT,
@@ -116,11 +116,12 @@ if (isSQLite && sqliteDb) {
       liters REAL,
       cost REAL,
       date TEXT,
+      logged_by TEXT,
       FOREIGN KEY (vehicle_id) REFERENCES vehicles(registration_number),
       FOREIGN KEY (trip_id) REFERENCES trips(id)
     )`);
 
-    // Expenses (Added trip_id)
+    // Expenses (Added trip_id, logged_by)
     sqliteDb.run(`CREATE TABLE IF NOT EXISTS expenses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       vehicle_id TEXT,
@@ -129,9 +130,18 @@ if (isSQLite && sqliteDb) {
       cost REAL,
       date TEXT,
       description TEXT,
+      logged_by TEXT,
       FOREIGN KEY (vehicle_id) REFERENCES vehicles(registration_number),
       FOREIGN KEY (trip_id) REFERENCES trips(id)
     )`);
+
+    // Run migrations to ensure columns exist for existing databases
+    sqliteDb.run("ALTER TABLE fuel_logs ADD COLUMN logged_by TEXT", (err) => {
+      // Ignore error if column already exists
+    });
+    sqliteDb.run("ALTER TABLE expenses ADD COLUMN logged_by TEXT", (err) => {
+      // Ignore error if column already exists
+    });
 
     // Documents
     sqliteDb.run(`CREATE TABLE IF NOT EXISTS documents (
@@ -601,8 +611,8 @@ module.exports = {
     const logDate = log.date || new Date().toISOString().split('T')[0];
     if (isSQLite) {
       const res = await dbRun(
-        "INSERT INTO fuel_logs (vehicle_id, trip_id, liters, cost, date) VALUES (?, ?, ?, ?, ?)",
-        [log.vehicle_id, log.trip_id || null, log.liters, log.cost, logDate]
+        "INSERT INTO fuel_logs (vehicle_id, trip_id, liters, cost, date, logged_by) VALUES (?, ?, ?, ?, ?, ?)",
+        [log.vehicle_id, log.trip_id || null, log.liters, log.cost, logDate, log.logged_by || null]
       );
       return { id: res.lastID, date: logDate, ...log };
     } else {
@@ -612,6 +622,7 @@ module.exports = {
         id,
         date: logDate,
         trip_id: log.trip_id || null,
+        logged_by: log.logged_by || null,
         ...log
       };
       logs.push(newLog);
@@ -646,8 +657,8 @@ module.exports = {
     const expenseDate = expense.date || new Date().toISOString().split('T')[0];
     if (isSQLite) {
       const res = await dbRun(
-        "INSERT INTO expenses (vehicle_id, trip_id, type, cost, date, description) VALUES (?, ?, ?, ?, ?, ?)",
-        [expense.vehicle_id, expense.trip_id || null, expense.type, expense.cost, expenseDate, expense.description]
+        "INSERT INTO expenses (vehicle_id, trip_id, type, cost, date, description, logged_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [expense.vehicle_id, expense.trip_id || null, expense.type, expense.cost, expenseDate, expense.description, expense.logged_by || null]
       );
       return { id: res.lastID, date: expenseDate, ...expense };
     } else {
@@ -657,6 +668,7 @@ module.exports = {
         id,
         date: expenseDate,
         trip_id: expense.trip_id || null,
+        logged_by: expense.logged_by || null,
         ...expense
       };
       expenses.push(newExpense);
