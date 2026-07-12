@@ -434,10 +434,10 @@ app.put('/api/trips/:id/dispatch', authorize(['fleet_manager', 'driver']), async
 // Complete Trip
 app.put('/api/trips/:id/complete', authorize(['fleet_manager', 'driver']), async (req, res) => {
   const { id } = req.params;
-  const { odometer_end, fuel_consumed } = req.body;
+  const { odometer_end, fuel_consumed, fuel_cost } = req.body;
 
-  if (!odometer_end || !fuel_consumed) {
-    return res.status(400).json({ error: 'Odometer end value and fuel consumed are required to complete trip.' });
+  if (!odometer_end || !fuel_consumed || !fuel_cost) {
+    return res.status(400).json({ error: 'Odometer end value, fuel consumed, and fuel cost are required to complete trip.' });
   }
 
   try {
@@ -450,6 +450,7 @@ app.put('/api/trips/:id/complete', authorize(['fleet_manager', 'driver']), async
 
     const odoEnd = parseFloat(odometer_end);
     const fuelVal = parseFloat(fuel_consumed);
+    const fuelCostVal = parseFloat(fuel_cost);
 
     if (odoEnd < trip.odometer_start) {
       return res.status(400).json({ error: `Odometer end (${odoEnd}) cannot be less than odometer start (${trip.odometer_start}).` });
@@ -474,12 +475,10 @@ app.put('/api/trips/:id/complete', authorize(['fleet_manager', 'driver']), async
     });
 
     // Automatically record Fuel Log entry
-    const FUEL_LITER_COST = 1.5; // Mock fuel cost rate
-    const totalFuelCost = fuelVal * FUEL_LITER_COST;
     await db.createFuelLog({
       vehicle_id: trip.vehicle_id,
       liters: fuelVal,
-      cost: totalFuelCost,
+      cost: fuelCostVal,
       date: new Date().toISOString().split('T')[0]
     });
 
@@ -683,12 +682,15 @@ app.get('/api/reports/analytics', async (req, res) => {
 
       const totalOpsCost = totalFuelCost + maintenanceCosts + otherExpenses;
 
-      // ROI = (Revenue - (Maintenance + Fuel + Others)) / Acquisition Cost
-      // Let's compute it strictly as required or standard: (Revenue - Total Ops Cost) / Acquisition Cost
-      const roiVal = v.acquisition_cost > 0 
+      // ROI = (Revenue - (Maintenance + Fuel)) / Acquisition Cost
+      const roi = v.acquisition_cost > 0 
+        ? (totalRevenue - (maintenanceCosts + totalFuelCost)) / v.acquisition_cost
+        : 0;
+        
+      const extendedRoiVal = v.acquisition_cost > 0 
         ? ((totalRevenue - totalOpsCost) / v.acquisition_cost) * 100
         : 0;
-      const roi = parseFloat(roiVal.toFixed(2));
+      const extended_roi = parseFloat(extendedRoiVal.toFixed(2));
 
       return {
         registration_number: v.registration_number,
@@ -703,7 +705,8 @@ app.get('/api/reports/analytics', async (req, res) => {
         maintenance_costs: maintenanceCosts,
         other_costs: otherExpenses,
         total_ops_cost: totalOpsCost,
-        roi
+        roi,
+        extended_roi
       };
     });
 

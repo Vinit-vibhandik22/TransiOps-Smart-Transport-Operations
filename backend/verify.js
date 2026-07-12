@@ -159,8 +159,9 @@ async function runTests() {
     console.log('\n[TEST 9] Completing the trip...');
     // Odometer start is 12000 (from seed), let's end at 12150 with 12 liters fuel consumed
     const completeRes = await request(`${BASE_URL}/trips/${newTrip.id}/complete`, 'PUT', managerHeaders, {
-      odometer_end: 12150,
-      fuel_consumed: 12
+      odometer_end: 15320,
+      fuel_consumed: 12,
+      fuel_cost: 18
     });
     console.log('PASS: Trip completed successfully.', completeRes.data);
 
@@ -170,8 +171,8 @@ async function runTests() {
     const checkDrv2 = await request(`${BASE_URL}/drivers`, 'GET', managerHeaders);
     const drvAlex_after = checkDrv2.data.find(d => d.id === alex.id);
 
-    if (van05_after.status === 'Available' && van05_after.odometer === 12150 && drvAlex_after.status === 'Available') {
-      console.log('PASS: Vehicle VAN-05 status is Available, odometer is 12150, Driver Alex status is Available.');
+    if (van05_after.status === 'Available' && van05_after.odometer === 15320 && drvAlex_after.status === 'Available') {
+      console.log('PASS: Vehicle VAN-05 status is Available, odometer is 15320, Driver Alex status is Available.');
     } else {
       console.error('FAIL: States did not restore correctly. Vehicle status:', van05_after.status, 'Odometer:', van05_after.odometer, 'Driver status:', drvAlex_after.status);
     }

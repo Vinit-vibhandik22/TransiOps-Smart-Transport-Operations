@@ -4,6 +4,13 @@
 
 const API_BASE = 'http://localhost:5000/api';
 
+const ROLE_DISPLAY_LABELS = {
+  fleet_manager: 'Fleet Manager',
+  driver: 'Dispatcher',
+  safety_officer: 'Safety Officer',
+  financial_analyst: 'Financial Analyst'
+};
+
 // Global Application State
 const state = {
   currentUser: null,
@@ -82,21 +89,21 @@ function showAppLayout() {
   topBadge.className = 'role-pill';
 
   if (state.currentUser.role === 'fleet_manager') {
-    roleEl.textContent = 'Fleet Manager';
+    roleEl.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
     roleEl.classList.add('manager');
-    topBadge.textContent = 'Fleet Manager';
-  } else if (state.currentUser.role === 'dispatcher') {
-    roleEl.textContent = 'Dispatcher';
+    topBadge.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
+  } else if (state.currentUser.role === 'driver') {
+    roleEl.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
     roleEl.classList.add('dispatcher');
-    topBadge.textContent = 'Dispatcher';
+    topBadge.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
   } else if (state.currentUser.role === 'safety_officer') {
-    roleEl.textContent = 'Safety Officer';
+    roleEl.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
     roleEl.classList.add('safety');
-    topBadge.textContent = 'Safety Officer';
+    topBadge.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
   } else if (state.currentUser.role === 'financial_analyst') {
-    roleEl.textContent = 'Financial Analyst';
+    roleEl.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
     roleEl.classList.add('finance');
-    topBadge.textContent = 'Financial Analyst';
+    topBadge.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
   }
   
   // Initials
@@ -109,7 +116,7 @@ function showAppLayout() {
 
 function getLandingViewForRole(role) {
   if (role === 'fleet_manager') return 'vehicles';
-  if (role === 'dispatcher') return 'dashboard';
+  if (role === 'driver') return 'dashboard';
   if (role === 'safety_officer') return 'drivers';
   if (role === 'financial_analyst') return 'expenses';
   return 'settings';
@@ -139,7 +146,7 @@ function applyRolePermissions() {
   if (role === 'fleet_manager') {
     if (tabs.vehicles) tabs.vehicles.style.display = 'flex';
     if (tabs.maintenance) tabs.maintenance.style.display = 'flex';
-  } else if (role === 'dispatcher') {
+  } else if (role === 'driver') {
     if (tabs.dashboard) tabs.dashboard.style.display = 'flex';
     if (tabs.trips) tabs.trips.style.display = 'flex';
   } else if (role === 'safety_officer') {
@@ -165,7 +172,7 @@ function applyRolePermissions() {
 
   const managerDriverButtons = document.querySelectorAll('.action-restricted-manager-driver');
   managerDriverButtons.forEach(btn => {
-    btn.style.display = (role === 'fleet_manager' || role === 'dispatcher') ? 'inline-flex' : 'none';
+    btn.style.display = (role === 'fleet_manager' || role === 'driver') ? 'inline-flex' : 'none';
   });
 
   const managerFinanceButtons = document.querySelectorAll('.action-restricted-manager-finance');
@@ -878,7 +885,7 @@ function renderVehiclesTable() {
       <td>${v.type}</td>
       <td>${v.max_load_capacity}</td>
       <td>${v.odometer.toLocaleString()} km</td>
-      <td>$${v.acquisition_cost.toLocaleString()}</td>
+      <td>₹${v.acquisition_cost.toLocaleString()}</td>
       <td><span class="badge ${v.status.toLowerCase().replace(' ', '')}">${v.status}</span></td>
       <td>
         <div class="btn-group">
@@ -1075,7 +1082,7 @@ function renderLiveBoard() {
 
   displayList.forEach(t => {
     let actionsHtml = '';
-    const canManage = state.currentUser.role === 'fleet_manager' || state.currentUser.role === 'dispatcher';
+    const canManage = state.currentUser.role === 'fleet_manager' || state.currentUser.role === 'driver';
 
     if (canManage) {
       if (t.status === 'Draft') {
@@ -1173,7 +1180,7 @@ async function loadMaintenanceData() {
     tr.innerHTML = `
       <td><strong>${log.vehicle_id}</strong><div style="font-size:11px;color:var(--text-muted);">${log.vehicle_name || ''}</div></td>
       <td>${log.description}</td>
-      <td>${log.cost ? `$${log.cost.toLocaleString()}` : '-'}</td>
+      <td>${log.cost ? `₹${log.cost.toLocaleString()}` : '-'}</td>
       <td><span class="badge ${log.status === 'Active' ? 'inshop' : 'completed'}">${log.status === 'Active' ? 'In Shop' : 'Completed'}</span></td>
       <td>${action || '<span class="text-muted" style="font-size:11px;">No Actions</span>'}</td>
     `;
@@ -1197,7 +1204,7 @@ async function loadExpensesData() {
       <td><strong>${f.vehicle_id}</strong><div style="font-size:11px;color:var(--text-muted);">${f.vehicle_name || ''}</div></td>
       <td>${f.date}</td>
       <td>${f.liters} L</td>
-      <td>$${f.cost.toLocaleString()}</td>
+      <td>₹${f.cost.toLocaleString()}</td>
     `;
     fuelTbody.appendChild(tr);
   });
@@ -1210,9 +1217,9 @@ async function loadExpensesData() {
     const isMaint = e.type === 'Maintenance';
     const isToll = e.type === 'Tolls';
     
-    const tollVal = isToll ? `$${e.cost.toLocaleString()}` : '$0';
-    const otherVal = (!isToll && !isMaint) ? `$${e.cost.toLocaleString()}` : '$0';
-    const maintVal = isMaint ? `$${e.cost.toLocaleString()}` : '$0';
+    const tollVal = isToll ? `₹${e.cost.toLocaleString()}` : '₹0';
+    const otherVal = (!isToll && !isMaint) ? `₹${e.cost.toLocaleString()}` : '₹0';
+    const maintVal = isMaint ? `₹${e.cost.toLocaleString()}` : '₹0';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -1231,7 +1238,7 @@ async function loadExpensesData() {
   let expenseTotal = state.expenses.reduce((sum, e) => sum + e.cost, 0);
   let grandTotal = fuelTotal + expenseTotal;
 
-  document.getElementById('calc-total-ops-cost').textContent = `$${grandTotal.toLocaleString()}`;
+  document.getElementById('calc-total-ops-cost').textContent = `₹${grandTotal.toLocaleString()}`;
 }
 
 function setupExpenseFormDropdowns(elementId) {
@@ -1272,7 +1279,7 @@ async function loadReportsData() {
 
   document.getElementById('analytic-fuel-efficiency').textContent = `${efficiency} km/l`;
   document.getElementById('analytic-fleet-utilization').textContent = `${utilization}%`;
-  document.getElementById('analytic-ops-cost').textContent = `$${grandTotal.toLocaleString()}`;
+  document.getElementById('analytic-ops-cost').textContent = `₹${grandTotal.toLocaleString()}`;
   document.getElementById('analytic-vehicle-roi').textContent = `${avgRoi}%`;
 
   // Render Detailed Vehicle Reports Table
@@ -1300,12 +1307,13 @@ async function loadReportsData() {
       <td>${r.total_distance.toLocaleString()} km</td>
       <td>${r.total_fuel_consumed.toLocaleString()} L</td>
       <td>${effStr}</td>
-      <td>$${r.fuel_costs.toLocaleString()}</td>
-      <td>$${r.maintenance_costs.toLocaleString()}</td>
-      <td>$${r.other_costs.toLocaleString()}</td>
-      <td><strong>$${r.total_ops_cost.toLocaleString()}</strong></td>
-      <td>$${r.total_revenue.toLocaleString()}</td>
-      <td ${roiClass}>${r.roi}%</td>
+      <td>₹${r.fuel_costs.toLocaleString()}</td>
+      <td>₹${r.maintenance_costs.toLocaleString()}</td>
+      <td>₹${r.other_costs.toLocaleString()}</td>
+      <td><strong>₹${r.total_ops_cost.toLocaleString()}</strong></td>
+      <td>₹${r.total_revenue.toLocaleString()}</td>
+      <td ${roiClass}>${Number(r.roi).toFixed(3)}</td>
+      <td ${roiClass}>${r.extended_roi}%</td>
     `;
     tbody.appendChild(tr);
   });
@@ -1563,6 +1571,7 @@ function openCompleteTripModal(id, odometerStart) {
   document.getElementById('complete-odo-end').value = '';
   document.getElementById('complete-odo-end').min = odometerStart;
   document.getElementById('complete-fuel').value = '';
+  document.getElementById('complete-fuel-cost').value = '';
   openModal('modal-complete-trip');
 }
 
@@ -1571,7 +1580,8 @@ async function handleCompleteTrip(e) {
   const id = document.getElementById('complete-trip-id').value;
   const payload = {
     odometer_end: parseFloat(document.getElementById('complete-odo-end').value),
-    fuel_consumed: parseFloat(document.getElementById('complete-fuel').value)
+    fuel_consumed: parseFloat(document.getElementById('complete-fuel').value),
+    fuel_cost: parseFloat(document.getElementById('complete-fuel-cost').value)
   };
 
   try {
@@ -1785,14 +1795,14 @@ function exportReportsCSV() {
     'Vehicle Reg', 'Model Name', 'Type', 'Acquisition Cost',
     'Distance (km)', 'Fuel Consumed (L)', 'Fuel Efficiency (km/L)',
     'Fuel Cost ($)', 'Maintenance Cost ($)', 'Other Expenses ($)',
-    'Total Ops Cost ($)', 'Trip Revenue ($)', 'ROI (%)'
+    'Total Ops Cost (₹)', 'Trip Revenue (₹)', 'ROI (ratio)', 'Extended ROI (%)'
   ];
 
   const rows = state.reports.map(r => [
     r.registration_number, r.name, r.type, r.acquisition_cost,
     r.total_distance, r.total_fuel_consumed, r.fuel_efficiency,
     r.fuel_costs, r.maintenance_costs, r.other_costs,
-    r.total_ops_cost, r.total_revenue, r.roi
+    r.total_ops_cost, r.total_revenue, Number(r.roi).toFixed(3), r.extended_roi
   ]);
 
   let csvContent = "data:text/csv;charset=utf-8,";
@@ -1824,9 +1834,10 @@ function exportReportsPDF() {
         <td>${r.type}</td>
         <td>${r.total_distance.toLocaleString()} km</td>
         <td>${r.fuel_efficiency > 0 ? `${r.fuel_efficiency} km/L` : '-'}</td>
-        <td>$${r.total_ops_cost.toLocaleString()}</td>
-        <td>$${r.total_revenue.toLocaleString()}</td>
-        <td style="font-weight:bold; color:${r.roi >= 0 ? '#10b981' : '#ef4444'};">${r.roi}%</td>
+        <td>₹${r.total_ops_cost.toLocaleString()}</td>
+        <td>₹${r.total_revenue.toLocaleString()}</td>
+        <td style="font-weight:bold; color:${r.roi >= 0 ? '#10b981' : '#ef4444'};">${Number(r.roi).toFixed(3)}</td>
+        <td style="font-weight:bold; color:${r.extended_roi >= 0 ? '#10b981' : '#ef4444'};">${r.extended_roi}%</td>
       </tr>
     `;
   });
@@ -1849,7 +1860,7 @@ function exportReportsPDF() {
         <table>
           <thead>
             <tr>
-              <th>Reg Number</th><th>Model</th><th>Type</th><th>Distance</th><th>Efficiency</th><th>Ops Cost</th><th>Revenue</th><th>ROI</th>
+              <th>Reg Number</th><th>Model</th><th>Type</th><th>Distance</th><th>Efficiency</th><th>Ops Cost</th><th>Revenue</th><th>ROI (ratio)</th><th>Ext. ROI (%)</th>
             </tr>
           </thead>
           <tbody>${tableRowsHtml}</tbody>

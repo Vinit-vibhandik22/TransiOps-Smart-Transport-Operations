@@ -39,7 +39,7 @@ async function seed() {
     // 2. Insert Users
     const users = [
       { email: 'manager@transitops.com', password: 'password123', name: 'Frank Miller (Fleet Mgr)', role: 'fleet_manager' },
-      { email: 'driver@transitops.com', password: 'password123', name: 'Raven K. (Dispatcher)', role: 'dispatcher' },
+      { email: 'driver@transitops.com', password: 'password123', name: 'Raven K. (Dispatcher)', role: 'driver' },
       { email: 'safety@transitops.com', password: 'password123', name: 'Sophia Chen (Safety Officer)', role: 'safety_officer' },
       { email: 'finance@transitops.com', password: 'password123', name: 'Richard Cox (Financial Analyst)', role: 'financial_analyst' }
     ];
