@@ -92,6 +92,7 @@ if (isSQLite && sqliteDb) {
       revenue REAL DEFAULT 0,
       status TEXT DEFAULT 'Draft',
       created_at TEXT,
+      cancellation_note TEXT,
       FOREIGN KEY (vehicle_id) REFERENCES vehicles(registration_number),
       FOREIGN KEY (driver_id) REFERENCES drivers(id)
     )`);
@@ -140,6 +141,9 @@ if (isSQLite && sqliteDb) {
       // Ignore error if column already exists
     });
     sqliteDb.run("ALTER TABLE expenses ADD COLUMN logged_by TEXT", (err) => {
+      // Ignore error if column already exists
+    });
+    sqliteDb.run("ALTER TABLE trips ADD COLUMN cancellation_note TEXT", (err) => {
       // Ignore error if column already exists
     });
 
@@ -467,8 +471,8 @@ module.exports = {
     const createdAt = new Date().toISOString().split('T')[0];
     if (isSQLite) {
       const res = await dbRun(
-        `INSERT INTO trips (source, destination, vehicle_id, driver_id, cargo_weight, planned_distance, odometer_start, odometer_end, fuel_consumed, revenue, status, created_at) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO trips (source, destination, vehicle_id, driver_id, cargo_weight, planned_distance, odometer_start, odometer_end, fuel_consumed, revenue, status, created_at, cancellation_note) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           trip.source,
           trip.destination,
@@ -481,7 +485,8 @@ module.exports = {
           trip.fuel_consumed || null,
           trip.revenue || 0,
           trip.status || 'Draft',
-          createdAt
+          createdAt,
+          trip.cancellation_note || null
         ]
       );
       return { id: res.lastID, created_at: createdAt, ...trip };
@@ -496,6 +501,7 @@ module.exports = {
         revenue: trip.revenue || 0,
         status: trip.status || 'Draft',
         created_at: createdAt,
+        cancellation_note: trip.cancellation_note || null,
         ...trip
       };
       trips.push(newTrip);

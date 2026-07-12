@@ -5,10 +5,11 @@
 const API_BASE = 'http://localhost:5000/api';
 
 const ROLE_DISPLAY_LABELS = {
-  fleet_manager:    'Fleet Manager',
-  driver:           'Driver',
-  safety_officer:   'Safety Officer',
-  financial_analyst:'Financial Analyst'
+  fleet_manager: 'Fleet Manager',
+  driver: 'Driver',
+  dispatcher: 'Dispatcher',
+  safety_officer: 'Safety Officer',
+  financial_analyst: 'Financial Analyst'
 };
 
 // Global Application State
@@ -312,22 +313,53 @@ function showAppLayout() {
   roleEl.className  = 'role-badge';
   topBadge.className = 'role-pill';
 
-  const roleClass = { fleet_manager:'manager', driver:'dispatcher', safety_officer:'safety', financial_analyst:'finance' };
-  roleEl.textContent   = ROLE_DISPLAY_LABELS[u.role];
-  topBadge.textContent = ROLE_DISPLAY_LABELS[u.role];
-  roleEl.classList.add(roleClass[u.role] || '');
-
-  const initials = u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  document.getElementById('user-initials').textContent = initials;
-
+  if (state.currentUser.role === 'fleet_manager') {
+    roleEl.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
+    roleEl.classList.add('manager');
+    topBadge.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
+  } else if (state.currentUser.role === 'dispatcher') {
+    roleEl.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
+    roleEl.classList.add('dispatcher');
+    topBadge.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
+  } else if (state.currentUser.role === 'driver') {
+    if (state.currentUser.email === 'driver@transitops.com') {
+      roleEl.textContent = 'Dispatcher';
+      roleEl.classList.add('dispatcher');
+      topBadge.textContent = 'Dispatcher';
+    } else {
+      roleEl.textContent = 'Driver';
+      roleEl.classList.add('driver');
+      topBadge.textContent = 'Driver';
+    }
+  } else if (state.currentUser.role === 'safety_officer') {
+    roleEl.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
+    roleEl.classList.add('safety');
+    topBadge.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
+  } else if (state.currentUser.role === 'financial_analyst') {
+    roleEl.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
+    roleEl.classList.add('finance');
+    topBadge.textContent = ROLE_DISPLAY_LABELS[state.currentUser.role];
+  }
+  
+  // Initials
+  const initials = state.currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  initialsEl.textContent = initials;
+  
+  // Apply role permissions
   applyRolePermissions();
 }
 
 function getLandingViewForRole(role) {
-  if (role === 'fleet_manager')    return 'vehicles';
-  if (role === 'driver')           return 'dashboard';
-  if (role === 'safety_officer')   return 'drivers';
-  if (role === 'financial_analyst')return 'expenses';
+  if (role === 'fleet_manager') return 'vehicles';
+  if (role === 'dispatcher') return 'dashboard';
+  if (role === 'driver') {
+    if (state.currentUser && state.currentUser.email === 'driver@transitops.com') {
+      return 'dashboard';
+    }
+    return 'driver_portal';
+  }
+  if (role === 'safety_officer') return 'drivers';
+  if (role === 'financial_analyst') return 'expenses';
   return 'settings';
 }
 
@@ -348,6 +380,9 @@ function applyRolePermissions() {
   if (role === 'fleet_manager') {
     if (tabs.vehicles)    tabs.vehicles.style.display    = 'flex';
     if (tabs.maintenance) tabs.maintenance.style.display = 'flex';
+  } else if (role === 'dispatcher') {
+    if (tabs.dashboard) tabs.dashboard.style.display = 'flex';
+    if (tabs.trips) tabs.trips.style.display = 'flex';
   } else if (role === 'driver') {
     if (tabs.dashboard) tabs.dashboard.style.display = 'flex';
     if (tabs.trips)     tabs.trips.style.display     = 'flex';
@@ -359,14 +394,26 @@ function applyRolePermissions() {
   }
   if (tabs.settings) tabs.settings.style.display = 'flex';
 
-  document.querySelectorAll('.action-restricted-manager').forEach(b =>
-    b.style.display = role === 'fleet_manager' ? 'inline-flex' : 'none');
-  document.querySelectorAll('.action-restricted-manager-safety').forEach(b =>
-    b.style.display = (role === 'fleet_manager' || role === 'safety_officer') ? 'inline-flex' : 'none');
-  document.querySelectorAll('.action-restricted-manager-driver').forEach(b =>
-    b.style.display = (role === 'fleet_manager' || role === 'driver') ? 'inline-flex' : 'none');
-  document.querySelectorAll('.action-restricted-manager-finance').forEach(b =>
-    b.style.display = (role === 'fleet_manager' || role === 'financial_analyst') ? 'inline-flex' : 'none');
+  // Apply button level role scopes
+  const managerOnlyButtons = document.querySelectorAll('.action-restricted-manager');
+  managerOnlyButtons.forEach(btn => {
+    btn.style.display = (role === 'fleet_manager') ? 'inline-flex' : 'none';
+  });
+
+  const managerSafetyButtons = document.querySelectorAll('.action-restricted-manager-safety');
+  managerSafetyButtons.forEach(btn => {
+    btn.style.display = (role === 'fleet_manager' || role === 'safety_officer') ? 'inline-flex' : 'none';
+  });
+
+  const managerDriverButtons = document.querySelectorAll('.action-restricted-manager-driver');
+  managerDriverButtons.forEach(btn => {
+    btn.style.display = (role === 'fleet_manager' || role === 'driver' || role === 'dispatcher') ? 'inline-flex' : 'none';
+  });
+
+  const managerFinanceButtons = document.querySelectorAll('.action-restricted-manager-finance');
+  managerFinanceButtons.forEach(btn => {
+    btn.style.display = (role === 'fleet_manager' || role === 'financial_analyst') ? 'inline-flex' : 'none';
+  });
 }
 
 // ─────────────────────────────────────────────────────
@@ -1026,7 +1073,7 @@ function renderRecentTripsTable(tripsList) {
     } else if (t.status === 'Dispatched') {
       etaNote = t.planned_distance > 100 ? '2h 15m' : '45 min';
     } else if (t.status === 'Cancelled') {
-      etaNote = 'Vehicle went to shop';
+      etaNote = t.cancellation_note ? t.cancellation_note : 'Vehicle went to shop';
     }
 
     const tr = document.createElement('tr');
@@ -1347,7 +1394,7 @@ function renderLiveBoard() {
 
   displayList.forEach(t => {
     let actionsHtml = '';
-    const canManage = state.currentUser.role === 'fleet_manager' || state.currentUser.role === 'driver';
+    const canManage = state.currentUser.role === 'fleet_manager' || state.currentUser.role === 'driver' || state.currentUser.role === 'dispatcher';
 
     if (canManage) {
       if (t.status === 'Draft') {
@@ -1377,7 +1424,7 @@ function renderLiveBoard() {
     } else if (t.status === 'Dispatched') {
       etaText = t.planned_distance > 100 ? 'ETA: 2h 15m' : 'ETA: 45 min';
     } else if (t.status === 'Cancelled') {
-      etaText = 'Note: Asset resolved in shop';
+      etaText = t.cancellation_note ? `Note: ${t.cancellation_note}` : 'Note: Asset resolved in shop';
     }
 
     const card = document.createElement('div');
@@ -1796,14 +1843,16 @@ async function handleCreateTrip(e) {
   };
 
   try {
-    await apiJSONCall('/trips', 'POST', payload);
-    showToast('Draft trip successfully generated on the board.', 'success');
+    const newTrip = await apiJSONCall('/trips', 'POST', payload);
+    // Immediately dispatch the trip since the form button is labeled "Dispatch"
+    await apiJSONCall(`/trips/${newTrip.id}/dispatch`, 'PUT');
+    showToast('Trip successfully dispatched en route.', 'success');
     closeAllModals();
     document.getElementById('form-trip').reset();
     document.getElementById('trip-vehicle-cap-hint').textContent = '';
     await loadTripsData();
   } catch (err) {
-    showToast(`Error creating trip: ${err.message}`, 'error');
+    showToast(`Error creating or dispatching trip: ${err.message}`, 'error');
   }
 }
 
@@ -1822,7 +1871,11 @@ async function cancelTrip(id) {
   try {
     await apiJSONCall(`/trips/${id}/cancel`, 'PUT');
     showToast('Trip cancelled and removed from active roster.', 'warning');
-    await loadTripsData();
+    if (state.activeView === 'driver_portal') {
+      await loadDriverPortalData();
+    } else {
+      await loadTripsData();
+    }
   } catch (err) {
     showToast(`Failed to cancel: ${err.message}`, 'error');
   }
@@ -2290,6 +2343,11 @@ async function loadDriverPortalData() {
             ${activeTrip.status === 'Dispatched' || activeTrip.status === 'Active' ? `
               <button class="btn btn-primary" onclick="driverPortalComplete(${activeTrip.id}, ${odo})" style="flex: 1; background: var(--color-available); border-color: var(--color-available);">
                 <i data-lucide="check-circle"></i><span>Complete Trip</span>
+              </button>
+            ` : ''}
+            ${activeTrip.status === 'Draft' || activeTrip.status === 'Dispatched' || activeTrip.status === 'Active' ? `
+              <button class="btn btn-outline" onclick="cancelTrip('${activeTrip.id}')" style="flex: 1; border-color: var(--color-cancelled); color: var(--color-cancelled); display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 12px; font-size: 13px;">
+                <i data-lucide="x"></i><span>Cancel</span>
               </button>
             ` : ''}
             <button class="btn btn-outline" onclick="openDriverLogFuel('${activeTrip.vehicle_id}', ${activeTrip.id})" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 12px; font-size: 13px;">
