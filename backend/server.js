@@ -460,9 +460,13 @@ app.get('/api/reports/analytics', authenticate, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────
-// Start Server
+// Start Server / Export for Vercel
 // ─────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`TransitOps: Server running on port ${PORT}`);
-  console.log(`Open http://localhost:${PORT} in your browser.`);
-});
+if (process.env.NODE_ENV !== 'production' || require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`TransitOps: Server running on port ${PORT}`);
+    console.log(`Open http://localhost:${PORT} in your browser.`);
+  });
+}
+
+module.exports = app;
