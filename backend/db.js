@@ -53,10 +53,10 @@ if (isSQLite && sqliteDb) {
       role TEXT
     )`);
 
-    // Vehicles
+    // Vehicles (Changed name -> model)
     sqliteDb.run(`CREATE TABLE IF NOT EXISTS vehicles (
       registration_number TEXT PRIMARY KEY,
-      name TEXT,
+      model TEXT,
       type TEXT,
       max_load_capacity REAL,
       odometer REAL,
@@ -108,25 +108,29 @@ if (isSQLite && sqliteDb) {
       FOREIGN KEY (vehicle_id) REFERENCES vehicles(registration_number)
     )`);
 
-    // Fuel Logs
+    // Fuel Logs (Added trip_id)
     sqliteDb.run(`CREATE TABLE IF NOT EXISTS fuel_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       vehicle_id TEXT,
+      trip_id INTEGER,
       liters REAL,
       cost REAL,
       date TEXT,
-      FOREIGN KEY (vehicle_id) REFERENCES vehicles(registration_number)
+      FOREIGN KEY (vehicle_id) REFERENCES vehicles(registration_number),
+      FOREIGN KEY (trip_id) REFERENCES trips(id)
     )`);
 
-    // Expenses
+    // Expenses (Added trip_id)
     sqliteDb.run(`CREATE TABLE IF NOT EXISTS expenses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       vehicle_id TEXT,
+      trip_id INTEGER,
       type TEXT,
       cost REAL,
       date TEXT,
       description TEXT,
-      FOREIGN KEY (vehicle_id) REFERENCES vehicles(registration_number)
+      FOREIGN KEY (vehicle_id) REFERENCES vehicles(registration_number),
+      FOREIGN KEY (trip_id) REFERENCES trips(id)
     )`);
 
     // Documents
@@ -250,28 +254,33 @@ module.exports = {
   // --- VEHICLES ---
   getVehicles: async () => {
     if (isSQLite) {
-      return dbAll("SELECT * FROM vehicles");
+      return dbAll("SELECT registration_number, model, model AS name, type, max_load_capacity, odometer, acquisition_cost, status, region FROM vehicles");
     } else {
-      return readJSON('vehicles');
+      const list = readJSON('vehicles');
+      return list.map(v => ({ name: v.name || v.model, model: v.model || v.name, ...v }));
     }
   },
 
   getVehicleByRegNumber: async (regNumber) => {
     if (isSQLite) {
-      return dbGet("SELECT * FROM vehicles WHERE registration_number = ?", [regNumber]);
+      return dbGet("SELECT registration_number, model, model AS name, type, max_load_capacity, odometer, acquisition_cost, status, region FROM vehicles WHERE registration_number = ?", [regNumber]);
     } else {
       const vehicles = readJSON('vehicles');
-      return vehicles.find(v => v.registration_number === regNumber) || null;
+      const v = vehicles.find(veh => veh.registration_number === regNumber) || null;
+      if (v) {
+        return { name: v.name || v.model, model: v.model || v.name, ...v };
+      }
+      return null;
     }
   },
 
   createVehicle: async (vehicle) => {
     if (isSQLite) {
       await dbRun(
-        "INSERT INTO vehicles (registration_number, name, type, max_load_capacity, odometer, acquisition_cost, status, region) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO vehicles (registration_number, model, type, max_load_capacity, odometer, acquisition_cost, status, region) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         [
           vehicle.registration_number,
-          vehicle.name,
+          vehicle.model || vehicle.name,
           vehicle.type,
           vehicle.max_load_capacity,
           vehicle.odometer,
@@ -280,13 +289,18 @@ module.exports = {
           vehicle.region
         ]
       );
-      return vehicle;
+      return { name: vehicle.name || vehicle.model, model: vehicle.model || vehicle.name, ...vehicle };
     } else {
       const vehicles = readJSON('vehicles');
       if (vehicles.some(v => v.registration_number === vehicle.registration_number)) {
         throw new Error('Vehicle registration number must be unique.');
       }
-      const newVehicle = { status: 'Available', ...vehicle };
+      const newVehicle = { 
+        status: 'Available', 
+        name: vehicle.name || vehicle.model, 
+        model: vehicle.model || vehicle.name, 
+        ...vehicle 
+      };
       vehicles.push(newVehicle);
       writeJSON('vehicles', vehicles);
       return newVehicle;
@@ -294,17 +308,27 @@ module.exports = {
   },
 
   updateVehicle: async (regNumber, updates) => {
+    const dbUpdates = { ...updates };
+    if ('name' in dbUpdates) {
+      dbUpdates.model = dbUpdates.name;
+      delete dbUpdates.name;
+    }
     if (isSQLite) {
-      const keys = Object.keys(updates);
+      const keys = Object.keys(dbUpdates);
       const setClause = keys.map(k => `${k} = ?`).join(', ');
-      const values = [...Object.values(updates), regNumber];
+      const values = [...Object.values(dbUpdates), regNumber];
       await dbRun(`UPDATE vehicles SET ${setClause} WHERE registration_number = ?`, values);
       return { registration_number: regNumber, ...updates };
     } else {
       const vehicles = readJSON('vehicles');
       const index = vehicles.findIndex(v => v.registration_number === regNumber);
       if (index === -1) throw new Error('Vehicle not found');
-      vehicles[index] = { ...vehicles[index], ...updates };
+      vehicles[index] = { 
+        ...vehicles[index], 
+        ...updates,
+        name: updates.name || updates.model || vehicles[index].name || vehicles[index].model,
+        model: updates.model || updates.name || vehicles[index].model || vehicles[index].name
+      };
       writeJSON('vehicles', vehicles);
       return vehicles[index];
     }
@@ -577,8 +601,8 @@ module.exports = {
     const logDate = log.date || new Date().toISOString().split('T')[0];
     if (isSQLite) {
       const res = await dbRun(
-        "INSERT INTO fuel_logs (vehicle_id, liters, cost, date) VALUES (?, ?, ?, ?)",
-        [log.vehicle_id, log.liters, log.cost, logDate]
+        "INSERT INTO fuel_logs (vehicle_id, trip_id, liters, cost, date) VALUES (?, ?, ?, ?, ?)",
+        [log.vehicle_id, log.trip_id || null, log.liters, log.cost, logDate]
       );
       return { id: res.lastID, date: logDate, ...log };
     } else {
@@ -587,6 +611,7 @@ module.exports = {
       const newLog = {
         id,
         date: logDate,
+        trip_id: log.trip_id || null,
         ...log
       };
       logs.push(newLog);
@@ -621,8 +646,8 @@ module.exports = {
     const expenseDate = expense.date || new Date().toISOString().split('T')[0];
     if (isSQLite) {
       const res = await dbRun(
-        "INSERT INTO expenses (vehicle_id, type, cost, date, description) VALUES (?, ?, ?, ?, ?)",
-        [expense.vehicle_id, expense.type, expense.cost, expenseDate, expense.description]
+        "INSERT INTO expenses (vehicle_id, trip_id, type, cost, date, description) VALUES (?, ?, ?, ?, ?, ?)",
+        [expense.vehicle_id, expense.trip_id || null, expense.type, expense.cost, expenseDate, expense.description]
       );
       return { id: res.lastID, date: expenseDate, ...expense };
     } else {
@@ -631,6 +656,7 @@ module.exports = {
       const newExpense = {
         id,
         date: expenseDate,
+        trip_id: expense.trip_id || null,
         ...expense
       };
       expenses.push(newExpense);
