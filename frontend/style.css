@@ -134,13 +134,18 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   overflow: hidden;
 }
-
 .brand-bg-glow {
   position: absolute;
-  top: -20%; left: -20%; width: 60%; height: 60%;
-  background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
-  filter: blur(50px);
+  top: -20%; left: -20%; width: 70%; height: 70%;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.2) 0%, transparent 60%);
+  filter: blur(80px);
   pointer-events: none;
+  animation: floatGlow 12s infinite ease-in-out;
+}
+
+@keyframes floatGlow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(15%, 15%) scale(1.15); }
 }
 
 .login-brand-side::before {
@@ -258,8 +263,21 @@ h1, h2, h3, h4, h5, h6 {
 
 .form-side-content {
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  padding: 44px;
+  box-shadow: var(--shadow-lg);
   animation: formSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="light"] .form-side-content {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.05);
 }
 
 @keyframes formSlideUp {
@@ -468,24 +486,36 @@ input:focus, select:focus, textarea:focus {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 10px;
-  border-radius: 10px;
+  padding: 12px 10px;
+  border-radius: 12px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   border: 1px solid var(--border-color);
+  background-color: rgba(255, 255, 255, 0.01);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+[data-theme="light"] .quick-login-btn {
+  background-color: rgba(0, 0, 0, 0.01);
+  color: var(--text-muted);
 }
 .quick-login-btn svg {
-  width: 18px;
-  height: 18px;
-  transition: transform var(--transition-fast);
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .quick-login-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background-color: var(--primary-glow);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 10px 20px -10px rgba(0,0,0,0.5);
+  background-color: rgba(255, 255, 255, 0.02);
 }
+.quick-login-btn[data-role="fleet_manager"]:hover { border-color: var(--primary); color: var(--primary); }
+.quick-login-btn[data-role="driver"]:hover { border-color: var(--color-ontrip); color: var(--color-ontrip); }
+.quick-login-btn[data-role="safety_officer"]:hover { border-color: var(--color-available); color: var(--color-available); }
+.quick-login-btn[data-role="financial_analyst"]:hover { border-color: var(--color-inshop); color: var(--color-inshop); }
+
 .quick-login-btn:hover svg {
-  transform: scale(1.15);
+  transform: scale(1.2);
 }
 
 /* ==========================================================================
