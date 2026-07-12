@@ -611,7 +611,64 @@
             <p>Submit repair entries, update active maintenance tickets, and trace fleet resolve rates</p>
           </div>
         </div>
-
+ 
+        <!-- =========================================================
+             NEW SECTION START: Maintenance Summary KPIs
+             (Presentational only — existing form/table below still
+             own all live data via app.js. IDs below are new and do
+             not collide with, rename, or remove any existing hook.)
+        ========================================================== -->
+        <section class="kpi-grid maintenance-summary-four" aria-label="Maintenance Summary">
+          <article class="kpi-card">
+            <div class="kpi-card-header-icon color-inshop"><i data-lucide="indian-rupee"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">TOTAL MAINTENANCE COST</span>
+              <h2 class="kpi-value" id="maint-summary-total-cost">₹0</h2>
+            </div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-card-header-icon color-draft"><i data-lucide="clipboard-list"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">OPEN MAINTENANCE JOBS</span>
+              <h2 class="kpi-value" id="maint-summary-open-jobs">0</h2>
+            </div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-card-header-icon color-available"><i data-lucide="check-circle-2"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">COMPLETED MAINTENANCE</span>
+              <h2 class="kpi-value" id="maint-summary-completed">0</h2>
+            </div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-card-header-icon color-ontrip"><i data-lucide="wrench"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">VEHICLES IN SHOP</span>
+              <h2 class="kpi-value" id="maint-summary-in-shop">0</h2>
+            </div>
+          </article>
+        </section>
+ 
+        <!-- Quick Actions -->
+        <section class="card quick-actions-card" aria-label="Maintenance Quick Actions">
+          <h3>Quick Actions</h3>
+          <div class="quick-actions-row">
+            <button type="button" class="btn btn-primary" id="qa-add-maintenance"
+              onclick="document.getElementById('maint-desc') && document.getElementById('maint-desc').focus();">
+              <i data-lucide="wrench"></i> Add Maintenance
+            </button>
+            <button type="button" class="btn btn-outline" id="qa-add-fuel-log"
+              onclick="document.getElementById('nav-expenses') && document.getElementById('nav-expenses').click(); setTimeout(function(){ var b = document.getElementById('btn-log-fuel'); if (b) b.click(); }, 50);">
+              <i data-lucide="fuel"></i> Add Fuel Log
+            </button>
+            <button type="button" class="btn btn-outline" id="qa-view-expense-report"
+              onclick="document.getElementById('nav-reports') && document.getElementById('nav-reports').click();">
+              <i data-lucide="bar-chart-3"></i> View Expense Report
+            </button>
+          </div>
+        </section>
+        <!-- NEW SECTION END: Maintenance Summary KPIs -->
+ 
         <!-- Split Layout matching Image 6 -->
         <div class="maintenance-split-row">
           <!-- Left: Log form -->
@@ -643,17 +700,17 @@
                   <option value="Closed">Closed</option>
                 </select>
               </div>
-
+ 
               <button type="submit" class="btn btn-primary btn-block" style="margin-top:15px;">Save Service Record</button>
             </form>
-
+ 
             <div class="maint-flow-guide">
               <div class="flow-line"><span class="label green-text">Available</span> <span class="arrow">&rarr; (creating active record) &rarr;</span> <span class="label orange-text">In Shop</span></div>
               <div class="flow-line"><span class="label orange-text">In Shop</span> <span class="arrow">&rarr; (closing record [w/o retired]) &rarr;</span> <span class="label green-text">Available</span></div>
               <p class="note">Note: In Shop vehicles are removed from the dispatch pool.</p>
             </div>
           </div>
-
+ 
           <!-- Right: Service Logs table -->
           <div class="maintenance-table-col card">
             <h3>Active & Historical Service Logs</h3>
@@ -675,8 +732,73 @@
             </div>
           </div>
         </div>
+ 
+        <!-- =========================================================
+             NEW SECTION START: Recent Maintenance Table
+             (Independent preview widget — new IDs only, existing
+             #maintenance-table above is untouched and still driven
+             by app.js exactly as before.)
+        ========================================================== -->
+        <section class="card" aria-label="Recent Maintenance" style="margin-top: 24px;">
+          <div class="card-header-with-action">
+            <h3>Recent Maintenance</h3>
+          </div>
+ 
+          <!-- Search box + filter dropdown -->
+          <div class="filter-bar" style="margin-top: 15px; padding: 0; box-shadow: none; border: none;">
+            <div class="filter-group flex-grow-3">
+              <input type="text" id="maint-recent-search" placeholder="Search vehicle or service description...">
+            </div>
+            <div class="filter-group">
+              <select id="maint-recent-filter">
+                <option value="">Status: All</option>
+                <option value="Active">Active</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
+          </div>
+ 
+          <div class="table-container" style="margin-top: 15px;">
+            <table class="data-table" id="maintenance-recent-table">
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Description</th>
+                  <th>Date</th>
+                  <th>Cost (₹)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Sample preview rows — replace with live data once wired to app.js -->
+                <tr>
+                  <td>VAN-05 (GJ01AB452)</td>
+                  <td>Oil Change</td>
+                  <td>2026-07-08</td>
+                  <td>₹2,500</td>
+                  <td><span class="status-pill status-closed">Closed</span></td>
+                </tr>
+                <tr>
+                  <td>TRK-02 (GJ01CD119)</td>
+                  <td>Brake Pad Replacement</td>
+                  <td>2026-07-10</td>
+                  <td>₹4,800</td>
+                  <td><span class="status-pill status-active">Active</span></td>
+                </tr>
+                <tr>
+                  <td>MINI-11 (GJ01EF773)</td>
+                  <td>Engine Diagnostic</td>
+                  <td>2026-07-11</td>
+                  <td>₹1,200</td>
+                  <td><span class="status-pill status-active">Active</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <!-- NEW SECTION END: Recent Maintenance Table -->
       </section>
-
+ 
       <!-- ==================== VIEW: 6. FUEL & EXPENSE MANAGEMENT ==================== -->
       <section id="view-expenses" class="app-view" style="display: none;">
         <div class="view-header-premium">
@@ -693,7 +815,68 @@
             </button>
           </div>
         </div>
-
+ 
+        <!-- =========================================================
+             NEW SECTION START: Fuel Summary + Operational Cost Card + Quick Actions
+             (Presentational additions only. The existing #fuel-table,
+             #expenses-table and #calc-total-ops-cost element below are
+             fully preserved — #calc-total-ops-cost has simply been
+             relocated into the Operational Cost Card here so it reads
+             as a proper summary card; its id and app.js binding are
+             unchanged.)
+        ========================================================== -->
+        <section class="kpi-grid fuel-summary-three" aria-label="Fuel Summary">
+          <article class="kpi-card">
+            <div class="kpi-card-header-icon color-ontrip"><i data-lucide="fuel"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">TOTAL FUEL COST</span>
+              <h2 class="kpi-value" id="fuel-summary-total-cost">₹0</h2>
+            </div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-card-header-icon color-draft"><i data-lucide="calendar-check"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">FUEL LOGS THIS MONTH</span>
+              <h2 class="kpi-value" id="fuel-summary-logs-month">0</h2>
+            </div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-card-header-icon color-available"><i data-lucide="droplet"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">AVG. FUEL PER VEHICLE</span>
+              <h2 class="kpi-value" id="fuel-summary-avg-per-vehicle">0 L</h2>
+            </div>
+          </article>
+        </section>
+ 
+        <!-- Operational Cost Card: Total Operational Cost = Fuel Cost + Maintenance Cost -->
+        <section class="card operational-cost-card" aria-label="Operational Cost">
+          <div class="total-operational-calc-row">
+            <span>TOTAL OPERATIONAL COST (AUTO) = FUEL + MAINT</span>
+            <span class="calc-total-value" id="calc-total-ops-cost">₹0</span>
+          </div>
+        </section>
+ 
+        <!-- Quick Actions -->
+        <section class="card quick-actions-card" aria-label="Fuel & Expense Quick Actions">
+          <h3>Quick Actions</h3>
+          <div class="quick-actions-row">
+            <button type="button" class="btn btn-primary" id="qa-exp-add-maintenance"
+              onclick="document.getElementById('nav-maintenance') && document.getElementById('nav-maintenance').click();">
+              <i data-lucide="wrench"></i> Add Maintenance
+            </button>
+            <button type="button" class="btn btn-outline" id="qa-exp-add-fuel-log"
+              onclick="document.getElementById('btn-log-fuel') && document.getElementById('btn-log-fuel').click();">
+              <i data-lucide="fuel"></i> Add Fuel Log
+            </button>
+            <button type="button" class="btn btn-outline" id="qa-exp-view-expense-report"
+              onclick="document.getElementById('nav-reports') && document.getElementById('nav-reports').click();">
+              <i data-lucide="bar-chart-3"></i> View Expense Report
+            </button>
+          </div>
+        </section>
+        <!-- NEW SECTION END: Fuel Summary + Operational Cost Card + Quick Actions -->
+ 
         <div class="expenses-split-row card" style="padding:0;">
           <!-- Top half: Fuel Logs -->
           <div class="expenses-top-block" style="padding: 24px; border-bottom: 1px solid var(--border-color);">
@@ -714,7 +897,7 @@
               </table>
             </div>
           </div>
-
+ 
           <!-- Bottom half: Other Expenses -->
           <div class="expenses-bottom-block" style="padding: 24px;">
             <h3>Operational Expenses Breakdown (Tolls / Maintenance)</h3>
@@ -735,14 +918,75 @@
                 </tbody>
               </table>
             </div>
-            
-            <div class="total-operational-calc-row">
-              <span>TOTAL OPERATIONAL COST (AUTO) = FUEL + MAINT</span>
-              <span class="calc-total-value" id="calc-total-ops-cost">₹0</span>
-            </div>
+            <!-- Note: the auto-calculated Total Operational Cost figure now lives in the
+                 Operational Cost Card at the top of this view (id="calc-total-ops-cost"),
+                 so app.js continues to update the exact same element as before. -->
           </div>
         </div>
+ 
+        <!-- =========================================================
+             NEW SECTION START: Recent Fuel Logs Table
+             (Independent preview widget — new IDs only, existing
+             #fuel-table above is untouched and still driven by
+             app.js exactly as before.)
+        ========================================================== -->
+        <section class="card" aria-label="Recent Fuel Logs" style="margin-top: 24px;">
+          <div class="card-header-with-action">
+            <h3>Recent Fuel Logs</h3>
+          </div>
+ 
+          <!-- Search box + filter dropdown -->
+          <div class="filter-bar" style="margin-top: 15px; padding: 0; box-shadow: none; border: none;">
+            <div class="filter-group flex-grow-3">
+              <input type="text" id="fuel-recent-search" placeholder="Search vehicle...">
+            </div>
+            <div class="filter-group">
+              <select id="fuel-recent-filter">
+                <option value="">Sort: Newest First</option>
+                <option value="oldest">Sort: Oldest First</option>
+                <option value="cost-high">Sort: Highest Cost</option>
+                <option value="cost-low">Sort: Lowest Cost</option>
+              </select>
+            </div>
+          </div>
+ 
+          <div class="table-container" style="margin-top: 15px;">
+            <table class="data-table" id="fuel-recent-table">
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Liters</th>
+                  <th>Cost (₹)</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Sample preview rows — replace with live data once wired to app.js -->
+                <tr>
+                  <td>VAN-05 (GJ01AB452)</td>
+                  <td>45.0 L</td>
+                  <td>₹3,150</td>
+                  <td>2026-07-09</td>
+                </tr>
+                <tr>
+                  <td>TRK-02 (GJ01CD119)</td>
+                  <td>72.5 L</td>
+                  <td>₹5,075</td>
+                  <td>2026-07-10</td>
+                </tr>
+                <tr>
+                  <td>MINI-11 (GJ01EF773)</td>
+                  <td>28.0 L</td>
+                  <td>₹1,960</td>
+                  <td>2026-07-11</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <!-- NEW SECTION END: Recent Fuel Logs Table -->
       </section>
+ 
 
       <!-- ==================== VIEW: 7. REPORTS & ANALYTICS ==================== -->
       <section id="view-reports" class="app-view" style="display: none;">
