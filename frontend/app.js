@@ -709,6 +709,14 @@ function setupEventListeners() {
     updateCargoCapacityHint();
   });
 
+  document.getElementById('btn-cancel-trip-form').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('form-trip').reset();
+    document.getElementById('trip-vehicle-cap-hint').textContent = '';
+    document.getElementById('trip-overload-warning').style.display = 'none';
+    showToast('Trip dispatch form cleared.', 'info');
+  });
+
   document.getElementById('btn-log-fuel').addEventListener('click', () => {
     setupExpenseFormDropdowns('fuel-vehicle');
     document.getElementById('fuel-date').value = new Date().toISOString().split('T')[0];
