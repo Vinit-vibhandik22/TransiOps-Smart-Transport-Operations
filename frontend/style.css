@@ -332,6 +332,16 @@ input, select, textarea {
   background-color: rgba(0, 0, 0, 0.015);
   color: var(--text-main);
 }
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  padding-right: 40px !important;
+}
 
 input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
@@ -1248,6 +1258,32 @@ input:focus, select:focus, textarea:focus {
 .badge.draft { background: var(--color-draft-bg); color: var(--text-muted); }
 .badge.completed { background: var(--color-available-bg); color: var(--color-available); }
 .badge.cancelled { background: var(--color-retired-bg); color: var(--color-retired); }
+
+.btn-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+}
+
+td:last-child {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.kpi-grid.dashboard-seven .kpi-card:nth-child(1) { border-left: 4px solid var(--color-ontrip) !important; }
+.kpi-grid.dashboard-seven .kpi-card:nth-child(2) { border-left: 4px solid var(--color-available) !important; }
+.kpi-grid.dashboard-seven .kpi-card:nth-child(3) { border-left: 4px solid var(--color-inshop) !important; }
+.kpi-grid.dashboard-seven .kpi-card:nth-child(4) { border-left: 4px solid var(--color-ontrip) !important; }
+.kpi-grid.dashboard-seven .kpi-card:nth-child(5) { border-left: 4px solid var(--color-draft) !important; }
+.kpi-grid.dashboard-seven .kpi-card:nth-child(6) { border-left: 4px solid var(--color-suspended) !important; }
+.kpi-grid.dashboard-seven .kpi-card:nth-child(7) { border-left: 4px solid var(--color-available) !important; }
+
+.kpi-grid.analytics-four .kpi-card:nth-child(1) { border-left: 4px solid var(--color-ontrip) !important; }
+.kpi-grid.analytics-four .kpi-card:nth-child(2) { border-left: 4px solid var(--color-available) !important; }
+.kpi-grid.analytics-four .kpi-card:nth-child(3) { border-left: 4px solid var(--color-inshop) !important; }
+.kpi-grid.analytics-four .kpi-card:nth-child(4) { border-left: 4px solid var(--primary) !important; }
 
 /* Buttons */
 .btn {
