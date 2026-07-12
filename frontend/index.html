@@ -19,23 +19,87 @@
 
   <!-- ==================== 0. AUTHENTICATION & LOGIN SCREEN ==================== -->
   <div id="login-screen" class="login-split-container">
-    <!-- Left Column: Branding & Tech Accents -->
+    <!-- Left Column: Product Landing Hero -->
     <div class="login-brand-side">
       <div class="brand-bg-glow"></div>
       <div class="brand-side-content">
-        <div class="logo-box">
-          <i data-lucide="navigation"></i>
+        <div class="landing-brand-mark">
+          <div class="logo-box">
+            <i data-lucide="navigation"></i>
+          </div>
+          <div>
+            <span class="brand-kicker">TransitOps Command Center</span>
+            <h1>Run every route, vehicle, and rupee from one smart cockpit.</h1>
+          </div>
         </div>
-        <h1>TransitOps</h1>
-        <p class="brand-subtitle">Smart Transport Operations Platform</p>
-        
+
+        <p class="brand-subtitle">
+          A secure operations platform for fleet visibility, driver compliance, dispatch control,
+          maintenance planning, fuel cost tracking, and ROI analytics.
+        </p>
+
+        <div class="landing-cta-row">
+          <a href="#panel-login" class="landing-cta" onclick="switchAuthTab('login')">
+            <i data-lucide="log-in"></i>
+            <span>Login to Dashboard</span>
+          </a>
+          <a href="#panel-signup" class="landing-cta secondary" onclick="switchAuthTab('signup')">
+            <i data-lucide="user-plus"></i>
+            <span>Create Account</span>
+          </a>
+        </div>
+
+        <div class="ops-showcase" aria-label="Transit operations preview">
+          <div class="ops-showcase-header">
+            <div>
+              <span>Live Fleet Pulse</span>
+              <strong>Gandhinagar Depot GJ4</strong>
+            </div>
+            <span class="live-pill"><i data-lucide="radio"></i> Live</span>
+          </div>
+          <div class="ops-route-map">
+            <div class="map-node depot"><i data-lucide="warehouse"></i><span>Depot</span></div>
+            <div class="map-road"><span class="map-vehicle"><i data-lucide="truck"></i></span></div>
+            <div class="map-node destination"><i data-lucide="map-pin"></i><span>Delivery</span></div>
+          </div>
+          <div class="ops-dashboard-grid">
+            <div class="ops-mini-card">
+              <span>On-Time Trips</span>
+              <strong>96%</strong>
+            </div>
+            <div class="ops-mini-card">
+              <span>Fuel Variance</span>
+              <strong>-12%</strong>
+            </div>
+            <div class="ops-mini-card accent">
+              <span>Alerts Cleared</span>
+              <strong>24</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="landing-proof-grid">
+          <div>
+            <strong>4</strong>
+            <span>role-based workspaces</span>
+          </div>
+          <div>
+            <strong>24/7</strong>
+            <span>fleet visibility</span>
+          </div>
+          <div>
+            <strong>100%</strong>
+            <span>audit-ready activity</span>
+          </div>
+        </div>
+
         <div class="roles-list-box">
-          <h3>Target User Roles:</h3>
+          <h3>Built for transport teams</h3>
           <ul>
-            <li><span class="bullet manager"></span> Fleet Manager</li>
-            <li><span class="bullet driver"></span> Driver / Dispatcher</li>
-            <li><span class="bullet safety"></span> Safety Officer</li>
-            <li><span class="bullet finance"></span> Financial Analyst</li>
+            <li><span class="bullet manager"></span> Fleet Managers keep assets profitable</li>
+            <li><span class="bullet driver"></span> Drivers and dispatchers move faster</li>
+            <li><span class="bullet safety"></span> Safety officers catch risk early</li>
+            <li><span class="bullet finance"></span> Analysts see cost and ROI clearly</li>
           </ul>
         </div>
       </div>
@@ -67,8 +131,9 @@
         <!-- PANEL 1: LOGIN FORM                        -->
         <!-- ══════════════════════════════════════════ -->
         <div id="panel-login" class="auth-panel active">
+          <div class="auth-eyebrow"><i data-lucide="shield-check"></i> Secure access for operations teams</div>
           <h2>Sign in to your account</h2>
-          <p class="form-subtitle">Enter your credentials to continue</p>
+          <p class="form-subtitle">Enter your credentials to unlock the live transport command dashboard.</p>
           <form id="login-form">
             <div class="form-group">
               <label for="login-email">EMAIL ADDRESS</label>
