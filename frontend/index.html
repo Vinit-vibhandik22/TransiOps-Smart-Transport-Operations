@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TransitOps - Smart Transport Operations Platform</title>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==================== LOGIN SCREEN ==================== -->
+  <div id="login-screen" class="login-overlay">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo-icon"><i data-lucide="navigation"></i></div>
+        <h2>TransitOps</h2>
+        <p>Smart Transport Operations Platform</p>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" required placeholder="manager@transitops.com">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+      </form>
+
+      <div class="quick-login-section">
+        <p class="quick-login-title">Quick Demo Login (RBAC roles)</p>
+        <div class="quick-login-grid">
+          <button class="btn btn-outline quick-login-btn" data-email="manager@transitops.com">
+            <i data-lucide="shield-check"></i>
+            <span>Fleet Manager</span>
+          </button>
+          <button class="btn btn-outline quick-login-btn" data-email="driver@transitops.com">
+            <i data-lucide="truck"></i>
+            <span>Driver</span>
+          </button>
+          <button class="btn btn-outline quick-login-btn" data-email="safety@transitops.com">
+            <i data-lucide="activity"></i>
+            <span>Safety Officer</span>
+          </button>
+          <button class="btn btn-outline quick-login-btn" data-email="finance@transitops.com">
+            <i data-lucide="dollar-sign"></i>
+            <span>Financial Analyst</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APPLICATION CONTAINER ==================== -->
+  <div id="app-container" class="app-layout" style="display: none;">
+    
+    <!-- SIDEBAR -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <i data-lucide="navigation" class="logo-svg"></i>
+          <span>TransitOps</span>
+        </div>
+      </div>
+
+      <!-- User Role Info Block -->
+      <div class="user-profile-block">
+        <div class="user-avatar">
+          <span id="user-initials">FM</span>
+        </div>
+        <div class="user-info">
+          <h4 id="user-display-name">Frank Miller</h4>
+          <span id="user-role-badge" class="role-badge manager">Fleet Manager</span>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-item active" data-view="dashboard">
+          <i data-lucide="layout-dashboard"></i><span>Dashboard</span>
+        </a>
+        <a href="#vehicles" class="nav-item" data-view="vehicles">
+          <i data-lucide="truck"></i><span>Vehicles</span>
+        </a>
+        <a href="#drivers" class="nav-item" data-view="drivers">
+          <i data-lucide="users"></i><span>Drivers</span>
+        </a>
+        <a href="#trips" class="nav-item" data-view="trips">
+          <i data-lucide="map"></i><span>Trips</span>
+        </a>
+        <a href="#maintenance" class="nav-item" data-view="maintenance">
+          <i data-lucide="wrench"></i><span>Maintenance</span>
+        </a>
+        <a href="#expenses" class="nav-item" data-view="expenses">
+          <i data-lucide="receipt"></i><span>Expenses & Fuel</span>
+        </a>
+        <a href="#reports" class="nav-item" data-view="reports">
+          <i data-lucide="bar-chart-3"></i><span>Reports & ROI</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <button id="theme-toggle" class="btn btn-icon" title="Toggle Theme">
+          <i data-lucide="sun" class="theme-icon-light"></i>
+          <i data-lucide="moon" class="theme-icon-dark"></i>
+        </button>
+        <button id="logout-btn" class="btn btn-logout">
+          <i data-lucide="log-out"></i><span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- CONTENT WRAPPER -->
+    <main class="app-content">
+      
+      <!-- Top Alert Bar (for Notifications e.g. Expired Licenses, Low Safety Scores) -->
+      <div id="notification-bar" class="notification-bar" style="display: none;">
+        <div class="notification-content">
+          <i data-lucide="alert-triangle"></i>
+          <span id="notification-message">System notice placeholder.</span>
+        </div>
+        <button class="btn-close-notification"><i data-lucide="x"></i></button>
+      </div>
+
+      <!-- ==================== VIEW: DASHBOARD ==================== -->
+      <section id="view-dashboard" class="app-view">
+        <div class="view-header">
+          <h1>Operations Dashboard</h1>
+          <p class="subtitle">Real-time indicators, fleet status, and key metrics</p>
+        </div>
+
+        <!-- Dashboard Filters -->
+        <div class="filter-bar card">
+          <div class="filter-group">
+            <label for="db-filter-type">Vehicle Type</label>
+            <select id="db-filter-type">
+              <option value="">All Types</option>
+              <option value="Van">Van</option>
+              <option value="Truck">Truck</option>
+              <option value="Semi-Trailer">Semi-Trailer</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="db-filter-region">Region</label>
+            <select id="db-filter-region">
+              <option value="">All Regions</option>
+              <option value="North">North</option>
+              <option value="South">South</option>
+              <option value="East">East</option>
+              <option value="West">West</option>
+            </select>
+          </div>
+          <button id="db-reset-filters" class="btn btn-outline">Reset Filters</button>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon blue"><i data-lucide="truck"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">Active Vehicles</span>
+              <h2 class="kpi-value" id="kpi-active-vehicles">0</h2>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon green"><i data-lucide="check-circle-2"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">Available Vehicles</span>
+              <h2 class="kpi-value" id="kpi-available-vehicles">0</h2>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon orange"><i data-lucide="wrench"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">In Maintenance</span>
+              <h2 class="kpi-value" id="kpi-maintenance-vehicles">0</h2>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon purple"><i data-lucide="users"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">Drivers On Duty</span>
+              <h2 class="kpi-value" id="kpi-drivers-duty">0</h2>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon red"><i data-lucide="percent"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">Fleet Utilization</span>
+              <h2 class="kpi-value" id="kpi-utilization">0%</h2>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon yellow"><i data-lucide="navigation"></i></div>
+            <div class="kpi-data">
+              <span class="kpi-label">Pending / Active Trips</span>
+              <h2 class="kpi-value" id="kpi-trips-summary">0 / 0</h2>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-row">
+          <div class="chart-container card">
+            <h3>Fleet Status Breakdown</h3>
+            <div class="chart-wrapper">
+              <canvas id="chart-fleet-status"></canvas>
+            </div>
+          </div>
+          <div class="chart-container card">
+            <h3>Operational Cost Breakdown (USD)</h3>
+            <div class="chart-wrapper">
+              <canvas id="chart-ops-costs"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: VEHICLES ==================== -->
+      <section id="view-vehicles" class="app-view" style="display: none;">
+        <div class="view-header">
+          <div>
+            <h1>Vehicle Registry</h1>
+            <p class="subtitle">Manage vehicle details, upload documents, and view status</p>
+          </div>
+          <button class="btn btn-primary action-restricted-manager" id="btn-add-vehicle">
+            <i data-lucide="plus"></i> Add Vehicle
+          </button>
+        </div>
+
+        <div class="table-container card">
+          <table class="data-table" id="vehicles-table">
+            <thead>
+              <tr>
+                <th>Reg. Number</th>
+                <th>Model Name</th>
+                <th>Type</th>
+                <th>Capacity</th>
+                <th>Odometer</th>
+                <th>Acq. Cost</th>
+                <th>Region</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Injected by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: DRIVERS ==================== -->
+      <section id="view-drivers" class="app-view" style="display: none;">
+        <div class="view-header">
+          <div>
+            <h1>Driver Management</h1>
+            <p class="subtitle">Track profiles, licenses, safety scores, and availability</p>
+          </div>
+          <button class="btn btn-primary action-restricted-manager-safety" id="btn-add-driver">
+            <i data-lucide="plus"></i> Add Driver
+          </button>
+        </div>
+
+        <div class="table-container card">
+          <table class="data-table" id="drivers-table">
+            <thead>
+              <tr>
+                <th>Driver Name</th>
+                <th>License No.</th>
+                <th>Category</th>
+                <th>License Expiration</th>
+                <th>Contact</th>
+                <th>Safety Score</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Injected by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: TRIPS ==================== -->
+      <section id="view-trips" class="app-view" style="display: none;">
+        <div class="view-header">
+          <div>
+            <h1>Trip Dispatch & Management</h1>
+            <p class="subtitle">Create and dispatch new deliveries, monitor trip cycles</p>
+          </div>
+          <button class="btn btn-primary action-restricted-manager-driver" id="btn-create-trip">
+            <i data-lucide="plus-circle"></i> Create New Trip
+          </button>
+        </div>
+
+        <div class="table-container card">
+          <table class="data-table" id="trips-table">
+            <thead>
+              <tr>
+                <th>Trip ID</th>
+                <th>Source & Destination</th>
+                <th>Vehicle</th>
+                <th>Driver</th>
+                <th>Cargo Weight</th>
+                <th>Distance (km)</th>
+                <th>Status</th>
+                <th>Odometer Range</th>
+                <th>Revenue</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Injected by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: MAINTENANCE ==================== -->
+      <section id="view-maintenance" class="app-view" style="display: none;">
+        <div class="view-header">
+          <div>
+            <h1>Vehicle Maintenance</h1>
+            <p class="subtitle">Log repairs, track shop status, and log maintenance costs</p>
+          </div>
+          <button class="btn btn-primary action-restricted-manager" id="btn-log-maintenance">
+            <i data-lucide="wrench"></i> Log Maintenance
+          </button>
+        </div>
+
+        <div class="table-container card">
+          <table class="data-table" id="maintenance-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Vehicle</th>
+                <th>Description</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+                <th>Cost</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Injected by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: EXPENSES & FUEL ==================== -->
+      <section id="view-expenses" class="app-view" style="display: none;">
+        <div class="view-header">
+          <div>
+            <h1>Expenses & Fuel Log</h1>
+            <p class="subtitle">Manual logging of fuel additions and other operating expenses</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary action-restricted-manager-driver" id="btn-log-fuel">
+              <i data-lucide="fuel"></i> Log Fuel
+            </button>
+            <button class="btn btn-primary action-restricted-manager-finance" id="btn-log-expense">
+              <i data-lucide="receipt"></i> Log Expense
+            </button>
+          </div>
+        </div>
+
+        <div class="expenses-split-row">
+          <div class="expenses-half-col card">
+            <h3>Fuel Receipts</h3>
+            <div class="table-scroll-container">
+              <table class="data-table compact" id="fuel-table">
+                <thead>
+                  <tr>
+                    <th>Vehicle</th>
+                    <th>Liters</th>
+                    <th>Total Cost</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Injected by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="expenses-half-col card">
+            <h3>Other Operating Expenses</h3>
+            <div class="table-scroll-container">
+              <table class="data-table compact" id="expenses-table">
+                <thead>
+                  <tr>
+                    <th>Vehicle</th>
+                    <th>Expense Type</th>
+                    <th>Cost</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Injected by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: REPORTS & ROI ==================== -->
+      <section id="view-reports" class="app-view" style="display: none;">
+        <div class="view-header">
+          <div>
+            <h1>Reports & Analytics</h1>
+            <p class="subtitle">Fleet-wide financial breakdown, fuel efficiency, and ROI analysis</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-outline" id="btn-export-csv"><i data-lucide="download"></i> Export CSV</button>
+            <button class="btn btn-outline" id="btn-export-pdf"><i data-lucide="file-text"></i> Export PDF</button>
+          </div>
+        </div>
+
+        <div class="table-container card">
+          <table class="data-table" id="reports-table">
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th>Type</th>
+                <th>Distance Travelled</th>
+                <th>Fuel Consumed</th>
+                <th>Fuel Efficiency</th>
+                <th>Total Fuel Cost</th>
+                <th>Maintenance Cost</th>
+                <th>Other Costs</th>
+                <th>Total Operational Cost</th>
+                <th>Trip Revenue</th>
+                <th>Vehicle ROI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Injected by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==================== FORM MODALS ==================== -->
+
+  <!-- MODAL: ADD VEHICLE -->
+  <div id="modal-vehicle" class="modal">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h2>Register New Vehicle</h2>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-vehicle">
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="vehicle-reg">Registration Number (Unique)</label>
+            <input type="text" id="vehicle-reg" required placeholder="e.g. VAN-10">
+          </div>
+          <div class="form-group col-6">
+            <label for="vehicle-name">Vehicle Name / Model</label>
+            <input type="text" id="vehicle-name" required placeholder="e.g. Ford Transit Custom">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="vehicle-type">Vehicle Type</label>
+            <select id="vehicle-type" required>
+              <option value="Van">Van</option>
+              <option value="Truck">Truck</option>
+              <option value="Semi-Trailer">Semi-Trailer</option>
+            </select>
+          </div>
+          <div class="form-group col-6">
+            <label for="vehicle-capacity">Max Load Capacity (kg)</label>
+            <input type="number" id="vehicle-capacity" required min="1" placeholder="e.g. 800">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="vehicle-odometer">Current Odometer (km)</label>
+            <input type="number" id="vehicle-odometer" required min="0" placeholder="e.g. 24000">
+          </div>
+          <div class="form-group col-6">
+            <label for="vehicle-cost">Acquisition Cost (USD)</label>
+            <input type="number" id="vehicle-cost" required min="0" placeholder="e.g. 45000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="vehicle-region">Assigned Region</label>
+          <select id="vehicle-region" required>
+            <option value="North">North</option>
+            <option value="South">South</option>
+            <option value="East">East</option>
+            <option value="West">West</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Vehicle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: UPLOAD VEHICLE DOCUMENT -->
+  <div id="modal-document" class="modal">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h2>Upload Vehicle Document</h2>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-document" enctype="multipart/form-data">
+        <input type="hidden" id="doc-vehicle-id">
+        <div class="form-group">
+          <label>Vehicle ID</label>
+          <input type="text" id="doc-vehicle-display" readonly class="input-readonly">
+        </div>
+        <div class="form-group">
+          <label for="doc-type">Document Type</label>
+          <select id="doc-type" required>
+            <option value="Registration">Registration Certificate</option>
+            <option value="Insurance">Insurance Policy</option>
+            <option value="Permit">Commercial Permit</option>
+            <option value="Other">Other Document</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="doc-file">Select File</label>
+          <input type="file" id="doc-file" required accept=".pdf,.png,.jpg,.jpeg">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+      </form>
+      <!-- Uploaded documents list -->
+      <div class="document-history-box">
+        <h4>Uploaded Documents</h4>
+        <ul id="uploaded-docs-list" class="document-list-ul">
+          <!-- Injected by JavaScript -->
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD DRIVER -->
+  <div id="modal-driver" class="modal">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h2>Register New Driver</h2>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-driver">
+        <input type="hidden" id="driver-edit-id">
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="driver-name">Full Name</label>
+            <input type="text" id="driver-name" required placeholder="e.g. Sarah Connor">
+          </div>
+          <div class="form-group col-6">
+            <label for="driver-contact">Contact Number</label>
+            <input type="text" id="driver-contact" required placeholder="e.g. +1 555-9011">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="driver-license">License Number</label>
+            <input type="text" id="driver-license" required placeholder="e.g. DL-887261">
+          </div>
+          <div class="form-group col-6">
+            <label for="driver-license-cat">License Category</label>
+            <select id="driver-license-cat" required>
+              <option value="Class A CDL">Class A CDL (Heavy Commercial)</option>
+              <option value="Class B CDL">Class B CDL (Medium Commercial)</option>
+              <option value="Class C">Class C (Standard Car/Light Truck)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="driver-license-expiry">License Expiry Date</label>
+            <input type="date" id="driver-license-expiry" required>
+          </div>
+          <div class="form-group col-6">
+            <label for="driver-safety">Safety Score (0 - 100)</label>
+            <input type="number" id="driver-safety" min="0" max="100" placeholder="100">
+          </div>
+        </div>
+        <div class="form-group" id="driver-status-group" style="display: none;">
+          <label for="driver-status">Status</label>
+          <select id="driver-status">
+            <option value="Available">Available</option>
+            <option value="Off Duty">Off Duty</option>
+            <option value="Suspended">Suspended</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Driver</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE TRIP -->
+  <div id="modal-trip" class="modal">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h2>Create Delivery Trip</h2>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-trip">
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="trip-source">Source Location</label>
+            <input type="text" id="trip-source" required placeholder="e.g. Warehouse 3">
+          </div>
+          <div class="form-group col-6">
+            <label for="trip-destination">Destination Location</label>
+            <input type="text" id="trip-destination" required placeholder="e.g. Retail Store B">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="trip-vehicle">Assign Vehicle (Available)</label>
+            <select id="trip-vehicle" required>
+              <option value="">Select Available Vehicle</option>
+            </select>
+          </div>
+          <div class="form-group col-6">
+            <label for="trip-driver">Assign Driver (Available & Valid License)</label>
+            <select id="trip-driver" required>
+              <option value="">Select Available Driver</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="trip-cargo">Cargo Weight (kg)</label>
+            <input type="number" id="trip-cargo" required min="1" placeholder="e.g. 450">
+            <small class="help-text" id="trip-vehicle-cap-hint"></small>
+          </div>
+          <div class="form-group col-6">
+            <label for="trip-distance">Planned Distance (km)</label>
+            <input type="number" id="trip-distance" required min="1" placeholder="e.g. 150">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="trip-revenue">Expected Revenue (USD)</label>
+          <input type="number" id="trip-revenue" min="0" placeholder="e.g. 800">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Draft Trip</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: COMPLETE TRIP -->
+  <div id="modal-complete-trip" class="modal">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h2>Complete Delivery Trip</h2>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-complete-trip">
+        <input type="hidden" id="complete-trip-id">
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label>Odometer Start (km)</label>
+            <input type="text" id="complete-odo-start" readonly class="input-readonly">
+          </div>
+          <div class="form-group col-6">
+            <label for="complete-odo-end">Odometer End (km)</label>
+            <input type="number" id="complete-odo-end" required min="0" placeholder="Must be >= start">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="complete-fuel">Actual Fuel Consumed (Liters)</label>
+          <input type="number" id="complete-fuel" required min="0.1" step="0.1" placeholder="e.g. 15.5">
+          <small class="help-text">An automatic fuel log and fuel expense will be generated based on this value.</small>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Complete Trip</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: LOG MAINTENANCE -->
+  <div id="modal-maintenance" class="modal">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h2>Log Vehicle Maintenance</h2>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-maintenance">
+        <div class="form-group">
+          <label for="maint-vehicle">Select Vehicle (Active)</label>
+          <select id="maint-vehicle" required>
+            <option value="">Select Vehicle</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="maint-desc">Service Description / Reason</label>
+          <textarea id="maint-desc" required placeholder="e.g. 50k km Engine Maintenance and Oil Filter Change" rows="3"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Send to Shop (In Shop)</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CLOSE MAINTENANCE -->
+  <div id="modal-close-maintenance" class="modal">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h2>Resolve Maintenance Log</h2>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-close-maintenance">
+        <input type="hidden" id="close-maint-id">
+        <div class="form-group">
+          <label for="close-maint-cost">Actual Maintenance Cost (USD)</label>
+          <input type="number" id="close-maint-cost" required min="0" placeholder="e.g. 850">
+        </div>
+        <div class="form-group">
+          <label for="close-maint-date">Resolution Date</label>
+          <input type="date" id="close-maint-date" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Resolve & Restore Vehicle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: LOG FUEL -->
+  <div id="modal-fuel" class="modal">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h2>Manual Fuel Receipt</h2>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-fuel">
+        <div class="form-group">
+          <label for="fuel-vehicle">Select Vehicle</label>
+          <select id="fuel-vehicle" required>
+            <option value="">Select Vehicle</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="fuel-liters">Amount (Liters)</label>
+            <input type="number" id="fuel-liters" required min="1" step="0.1" placeholder="e.g. 45.0">
+          </div>
+          <div class="form-group col-6">
+            <label for="fuel-cost">Total Cost (USD)</label>
+            <input type="number" id="fuel-cost" required min="1" step="0.01" placeholder="e.g. 67.50">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="fuel-date">Logging Date</label>
+          <input type="date" id="fuel-date" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Log Fuel Receipt</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: LOG EXPENSE -->
+  <div id="modal-expense" class="modal">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h2>Log Operating Expense</h2>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-expense">
+        <div class="form-group">
+          <label for="expense-vehicle">Select Vehicle</label>
+          <select id="expense-vehicle" required>
+            <option value="">Select Vehicle</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="expense-type">Expense Category</label>
+            <select id="expense-type" required>
+              <option value="Tolls">Highway Tolls</option>
+              <option value="Registration">Registration & Taxes</option>
+              <option value="Insurance">Insurance Premium</option>
+              <option value="Tires">Tire Replacements</option>
+              <option value="Other">Other Expenses</option>
+            </select>
+          </div>
+          <div class="form-group col-6">
+            <label for="expense-cost">Cost (USD)</label>
+            <input type="number" id="expense-cost" required min="1" step="0.01" placeholder="e.g. 150">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="expense-date">Logging Date</label>
+          <input type="date" id="expense-date" required>
+        </div>
+        <div class="form-group">
+          <label for="expense-desc">Description</label>
+          <input type="text" id="expense-desc" required placeholder="e.g. Toll charges for NYC delivery run">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Log Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- App Logic script -->
+  <script src="app.js"></script>
+</body>
+</html>
